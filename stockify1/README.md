@@ -1,40 +1,5 @@
-# Stockify - AI-Powered Stock Analysis Platform
+# Stockify application source
 
-## Features
-- User authentication (signup/login) with JSON storage
-- Real-time Indian and International market status
-- Stock search and detailed analysis
-- Hybrid prediction models (Historical + Sentiment Analysis)
-- 14-day stock price predictions
-- Watchlist and portfolio tracking
+This folder contains the Flask application, Jinja templates, and historical, sentiment, hybrid, and currency modules. See the [repository README](../README.md) for correct setup, attribution, and feature coverage, and the [technical report](../docs/TECHNICAL_REPORT.md) for evaluation limitations.
 
-## Installation
-
-1. Install dependencies:
-\`\`\`bash
-pip install -r requirements.txt
-\`\`\`
-
-2. Run the application:
-\`\`\`bash
-python app.py
-\`\`\`
-
-3. Open your browser and navigate to:
-\`\`\`
-http://localhost:5000
-\`\`\`
-
-## Usage
-1. Sign up for a new account
-2. Login with your credentials
-3. Explore the dashboard for market status
-4. Search for stocks and get predictions
-5. Add stocks to your watchlist and portfolio
-
-## Technologies
-- Backend: Python Flask
-- Data: yfinance
-- ML: scikit-learn, numpy, pandas
-- Sentiment Analysis: TextBlob, BeautifulSoup
-- Frontend: HTML, CSS, JavaScript
+Run `python app.py` from this directory after installing `requirements.txt` and setting `STOCKIFY_SECRET_KEY`. The server listens on http://127.0.0.1:5000. No verified public deployment or benchmark is supplied. The other optimization/currency notes are historical implementation notes; their speed and accuracy claims have not been remeasured.

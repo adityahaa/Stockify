@@ -1,71 +1,50 @@
-# 📈 Stockify: Your AI-Powered Stock Analysis and Prediction Platform
+# Stockify
 
-## 🌟 Overview
-Stockify is an intelligent, user-friendly platform designed to bring clarity and predictive power to the volatile world of stock market investing. Leveraging the power of modern deep learning models, Stockify provides sophisticated analysis, real-time data visualization, and forecasts to help you make informed decisions.
+A Flask application for exploring stock histories, watchlists, portfolios, and experimental price forecasts. The original application files are in [`stockify1/`](stockify1/). This is a software and modeling demonstration; predictive usefulness has not been established.
 
-Whether you're a seasoned trader or just starting out, Stockify simplifies complex financial data, transforming raw numbers into actionable insights.
+## Problem and implemented features
 
-## ✨ Key Features
+The project brings price exploration and multiple forecast approaches into one interface:
 
-* **Deep Learning Predictions:** Utilizes advanced **LSTM (Long Short-Term Memory)** neural networks to generate future stock price forecasts based on historical data. 
-* **Real-time Data Fetching:** Seamlessly pulls real-time stock data from Yahoo Finance via the `yfinance` library.
-* **Interactive Visualization:** Beautifully charts historical prices, trading volumes, and predictions using interactive plots powered by Streamlit.
-* **Technical Indicators:** Automatically calculates and displays key technical indicators (e.g., Moving Averages, RSI) for comprehensive analysis.
-* **User-Friendly Interface:** Hosted on Streamlit for a clean, responsive, and easy-to-navigate web application experience.
+- JSON-backed registration/login, watchlist management, and portfolio entries.
+- Historical prices and company data fetched through Yahoo Finance using `yfinance`.
+- Standard and bidirectional LSTM options with technical price/volume features.
+- TextBlob news sentiment with scraping and market-performance fallbacks.
+- A heuristic hybrid forecast combining historical and sentiment outputs.
+- USD/INR conversion with external rate sources and fallback values.
 
-## 💻 Tech Stack & Dependencies
+This is **Flask**, not Streamlit. Data depends on provider responses and is not guaranteed to be real time. Sentiment and portfolio features are already present; they are not future-only features.
 
-This project is built with a focus on simplicity, speed, and powerful backend computing.
+## Architecture and models
 
-| Category | Technology/Library | Purpose |
-| :--- | :--- | :--- |
-| **Backend/Core** | Python 3.11 | Main programming language. |
-| **Web Framework** | [Streamlit](https://streamlit.io/) | For creating and hosting the web application. |
-| **Data Acquisition** | `yfinance` | Fetching historical and real-time stock data. |
-| **Numerical Computing** | `numpy`, `pandas` | Data manipulation and scientific computing. |
-| **Deep Learning** | `tensorflow` (or `pytorch`) | Building the predictive LSTM model. |
-| **Web Server (Optional)** | `Flask` | Base server environment for the application. |
+`app.py` defines browser routes and JSON APIs. Jinja templates render the interface. `models/historical_predictor.py` creates technical features, 30-step input windows, an 80/20 chronological sequence split, and on-request TensorFlow training. `sentiment_analyzer.py` retrieves news and applies TextBlob polarity. `hybrid_predictor.py` weights outputs using heuristic error/confidence quantities. `currency_utils.py` handles currency conversion.
 
-## 🚀 Getting Started (Run Locally)
+The historical model requests two years of data and uses close, volume, moving averages, RSI, MACD, signal line, volume ratio, momentum, and volatility. There is no versioned training dataset or saved benchmark in this repository.
 
-Follow these steps to get a local copy of Stockify running on your machine.
+## Local setup
 
-### Prerequisites
+Use Python 3.11 for the supplied TensorFlow/NumPy pins. From PowerShell:
 
-You need Python 3.9+ installed and a package manager (like `pip`).
+```powershell
+git clone https://github.com/adityahaa/Stockify.git
+cd Stockify
+py -3.11 -m venv .venv
+.venv\Scripts\python.exe -m pip install -r stockify1/requirements.txt
+$env:STOCKIFY_SECRET_KEY = (py -3.11 -c "import secrets; print(secrets.token_hex(32))")
+cd stockify1
+..\.venv\Scripts\python.exe app.py
+```
 
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/kaustubhj18/Stockify.git](https://github.com/kaustubhj18/Stockify.git)
-    cd Stockify
-    ```
+Open http://127.0.0.1:5000. Run from `stockify1` because runtime JSON paths are relative to the working directory. No public deployment is verified. Network access is required for stock/news/currency requests; forecast requests train models and can take time.
 
-2.  **Create a virtual environment (Recommended):**
-    ```bash
-    python -m venv stockify-venv
-    source stockify-venv/bin/activate  # On macOS/Linux
-    stockify-venv\Scripts\activate   # On Windows
-    ```
+## Evaluation and limitations
 
-3.  **Install dependencies:**
-    *(Make sure your `requirements.txt` is in the root or the correct subdirectory.)*
-    ```bash
-    pip install -r stockify1/requirements.txt
-    ```
+Read the [technical report](docs/TECHNICAL_REPORT.md) before interpreting model outputs. Existing MAE/RMSE are calculated on scaled targets and then passed through currency conversion; they are not valid price-unit error measurements. The scaler is fit before the train/test split. The displayed confidence and risk scores are heuristics, not calibrated probabilities. No measured accuracy, trading profit, latency improvement, or superiority over a persistence baseline is claimed.
 
-4.  **Run the Streamlit application:**
-    ```bash
-    streamlit run stockify1/app.py
-    ```
-    The app should open automatically in your browser at `http://localhost:8501`.
+Accounts store plaintext passwords in a local JSON file; the development server enables debugging. Use synthetic credentials and data locally. Public hosting requires authentication/storage hardening, CSRF protection, concurrency review, and a deployment configuration. Forecast dates include calendar days and recursively hold other features fixed.
 
+## Attribution
 
-## 🔧 Future Enhancements
+The original README credits **Kaustubh J.** and links [kaustubhj18/Stockify](https://github.com/kaustubhj18/Stockify). That attribution is retained here; repository ownership does not establish sole authorship. Aditya Hambire maintains this copy. Existing Git history is preserved. No additional rights or third-party data redistribution license is asserted.
 
-* Integration of **Sentiment Analysis** from news articles to improve prediction accuracy.
-* **Backtesting** feature to allow users to test strategies against historical data.
-* User authentication and **portfolio tracking**.
-* Migration of model training to cloud services (e.g., Google Cloud AI Platform).
-
-
-<p align="center">Made with ❤️ by Kaustubh J.</p>
+Current checks and unresolved prerequisites: [verification record](docs/VERIFICATION.md).
