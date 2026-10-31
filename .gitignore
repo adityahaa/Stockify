@@ -1,0 +1,16 @@
+users.json
+instance/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+*.sqlite*
+*.db
+.idea/
+.venv/
+.vercel/
+node_modules/
+.pytest_cache/
+*.log
+.DS_Store
