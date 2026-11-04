@@ -14,12 +14,14 @@ from models.hybrid_predictor import HybridPredictor
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import requests
+from werkzeug.security import generate_password_hash, check_password_hash
+import secrets
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('STOCKIFY_SECRET_KEY')
+app.secret_key = os.environ.get('STOCKIFY_SECRET_KEY') or secrets.token_hex(32)
 
 # File to store user credentials
-USERS_FILE = 'users.json'
+USERS_FILE = os.environ.get('STOCKIFY_USERS_FILE', os.path.join(app.instance_path, 'users.json'))
 
 def format_dividend_yield(dividend_yield):
     """Format dividend yield for display"""
@@ -234,11 +236,14 @@ except Exception as e:
 
 def load_users():
     """Load users from JSON file"""
+    if not os.path.exists(USERS_FILE):
+        return []
     with open(USERS_FILE, 'r') as f:
         return json.load(f)
 
 def save_users(users):
     """Save users to JSON file"""
+    os.makedirs(os.path.dirname(os.path.abspath(USERS_FILE)), exist_ok=True)
     with open(USERS_FILE, 'w') as f:
         json.dump(users, f, indent=2)
 
@@ -297,7 +302,7 @@ def signup():
         # Add new user
         users.append({
             'email': email,
-            'password': password,  # In production, hash this!
+            'password': generate_password_hash(password),
             'name': name,
             'created_at': datetime.now().isoformat(),
             'watchlist': [],
@@ -333,7 +338,7 @@ def login():
         if not user:
             return jsonify({'success': False, 'message': 'User not found. Please signup first.'})
         
-        if user['password'] != password:
+        if not check_password_hash(user['password'], password):
             return jsonify({'success': False, 'message': 'Invalid password'})
         
         # Set session
@@ -855,4 +860,4 @@ def manage_portfolio():
         return jsonify({'success': False, 'message': 'Stock not in portfolio'})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=os.environ.get('FLASK_DEBUG') == '1', port=5000)
