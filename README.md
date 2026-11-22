@@ -1,7 +1,12 @@
 # Stockify
 
-A Flask application for exploring stock histories, watchlists, portfolios, and experimental price forecasts. The original application files are in [`stockify1/`](stockify1/). This is a software and modeling demonstration; predictive usefulness has not been established.
+A Flask stock-analysis app combining LSTM price forecasts, news sentiment, watchlists and portfolio tracking.
 
+Stockify brings a symbol’s price history, technical features and experimental forecasts into one browser workflow. Users can explore stock data, compare historical and sentiment-based outputs, and maintain local watchlists and portfolio entries.
+
+The forecasting modules implement standard and bidirectional LSTM options alongside a sentiment path and a weighted hybrid. The source and technical report expose how those outputs are constructed and how to interpret the existing evaluation quantities.
+
+[Run locally](#local-setup) · [Model implementation](#architecture-and-models) · [Technical report](docs/TECHNICAL_REPORT.md) · [Verification scope](docs/VERIFICATION.md)
 
 ## Contents
 
@@ -18,7 +23,7 @@ The project brings price exploration and multiple forecast approaches into one i
 - A heuristic hybrid forecast combining historical and sentiment outputs.
 - USD/INR conversion with external rate sources and fallback values.
 
-This is **Flask**, not Streamlit. Data depends on provider responses and is not guaranteed to be real time. Sentiment and portfolio features are already present; they are not future-only features.
+Flask serves the interface and APIs. Yahoo Finance and news responses supply the market inputs, whose freshness and availability depend on the upstream providers.
 
 ## Architecture and models
 
