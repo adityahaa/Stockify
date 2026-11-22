@@ -2,6 +2,11 @@
 
 A Flask application for exploring stock histories, watchlists, portfolios, and experimental price forecasts. The original application files are in [`stockify1/`](stockify1/). This is a software and modeling demonstration; predictive usefulness has not been established.
 
+
+## Contents
+
+[Problem and implemented features](#problem-and-implemented-features) · [Architecture and models](#architecture-and-models) · [Local setup](#local-setup) · [Evaluation and limitations](#evaluation-and-limitations) · [Attribution](#attribution) · [How a forecast request moves through the application](#how-a-forecast-request-moves-through-the-application)
+
 ## Problem and implemented features
 
 The project brings price exploration and multiple forecast approaches into one interface:
@@ -48,3 +53,51 @@ Accounts store plaintext passwords in a local JSON file; the development server 
 The original README credits **Kaustubh J.** and links [kaustubhj18/Stockify](https://github.com/kaustubhj18/Stockify). That attribution is retained here; repository ownership does not establish sole authorship. Aditya Hambire maintains this copy. Existing Git history is preserved. No additional rights or third-party data redistribution license is asserted.
 
 Current checks and unresolved prerequisites: [verification record](docs/VERIFICATION.md).
+
+## How a forecast request moves through the application
+
+The practical problem is bringing several views of a stock into the same session. A user signs in, searches a symbol, explores history and requests a forecast. Watchlists and portfolio records preserve the symbols and holdings entered during that workflow. Forecast routes return JSON for the corresponding template to visualize.
+
+```mermaid
+flowchart TD
+  A[Browser and Jinja pages] --> B[Flask routes]
+  B --> C[Yahoo Finance history]
+  C --> D[Technical features and sequences]
+  D --> E[LSTM training and forecast]
+  B --> F[News retrieval and TextBlob]
+  E --> G[Hybrid weighting]
+  F --> G
+  G --> H[Prediction JSON]
+  B --> I[(Local user JSON)]
+```
+
+### Historical model construction
+
+`HistoricalPredictor.prepare_features` computes 7/21/50-day moving averages, 14-day RSI, MACD and its signal, volume ratio, momentum and volatility. It also constructs Bollinger columns, while the selected model-input list uses eleven features headed by close and volume. Rolling calculations remove the initial incomplete rows. `create_sequences` maps each preceding 30-row window to the next scaled close value.
+
+The standard model contains a 32-unit LSTM, dropout, a 16-unit dense layer and a scalar output. The advanced branch stacks bidirectional 128/64-unit LSTMs followed by a 32-unit LSTM and dense layers. Training uses Adam/MSE, batch size 64, a 5% validation split within training, and early stopping on training loss. Model selection changes computation per request, so response time depends on the selected architecture, retrieved history and host hardware.
+
+### Sentiment and hybrid behavior
+
+`SentimentAnalyzer` first attempts provider news, then other news sources and fallbacks. TextBlob supplies polarity-based signals. `HybridPredictor.combine_predictions` normalizes inverse historical MAE and sentiment confidence into weights, combines the common forecast horizon, and returns the available component directly when the other has no predictions. These rules are inspectable, but their weight scales need a common evaluation protocol before the hybrid's quality can be compared with either component.
+
+### Observable outcome and evaluation boundary
+
+The source implements browser/API paths for exploration, account state, watchlists, portfolio records and three forecast modes. The current review established Python syntax and traced those paths. Runtime training and market-data integration remain to be verified with the environment described above. The technical report explains the existing scaling and error-unit issues so a future evaluation can report interpretable price errors against a previous-close baseline.
+
+### Source navigation
+
+```text
+stockify1/
+  app.py                    Flask pages, account state and APIs
+  requirements.txt          pinned Python dependencies
+  models/
+    historical_predictor.py features, LSTMs and recursive forecast
+    sentiment_analyzer.py   news acquisition and polarity
+    hybrid_predictor.py     weighting and heuristic risk output
+    currency_utils.py       price conversion
+  templates/                Jinja pages for the user workflow
+docs/                       evaluation findings and verification scope
+```
+
+The next modeling improvement is a fixed chronological benchmark with train-only scaling and inverse-transformed targets. Authentication hardening and consistent currency provenance are the corresponding priorities for a shared deployment.
